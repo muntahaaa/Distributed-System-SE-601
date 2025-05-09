@@ -9,6 +9,9 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Mount the book routes
+app.use('api/books', bookRoutes);
+
 // Test database connection
 sequelize.authenticate()
   .then(async () => {

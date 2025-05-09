@@ -18,13 +18,16 @@ exports.createLoan = async (req, res) => {
       }
     } catch (error) {
       return res.status(404).json({ message: 'Book not found' });
-    }
-
-    // Verify user exists
+    }    // Verify user exists
     const actualUserId = user_id || req.user.id;
     try {
-      await axios.get(`${USER_SERVICE_URL}/api/users/${actualUserId}`);
+      await axios.get(`${USER_SERVICE_URL}/api/users/${actualUserId}`, {
+        headers: {
+          'Authorization': req.headers.authorization
+        }
+      });
     } catch (error) {
+      console.error('Error verifying user:', error.response?.data || error.message);
       return res.status(404).json({ message: 'User not found' });
     }
 
@@ -34,22 +37,20 @@ exports.createLoan = async (req, res) => {
       book_id,
       due_date,
       status: 'ACTIVE'
-    });
-
-    // Update book available copies
+    });    // Update book available copies
     try {
-      await axios.put(`${BOOK_SERVICE_URL}/api/books/${book_id}`, {
-        decrement_copies: 1
-      });
+      await axios.put(`${BOOK_SERVICE_URL}/api/books/${book_id}`, 
+        { decrement_copies: 1 },
+        { headers: { 'Authorization': req.headers.authorization } }
+      );
     } catch (error) {
-      console.error('Error updating book copies:', error);
+      console.error('Error updating book copies:', error.response?.data || error.message);
       // Continue anyway as the loan is already created
-    }
-
-    // Fetch complete loan details with user and book info
+    }    // Fetch complete loan details with user and book info
+    const headers = { 'Authorization': req.headers.authorization };
     const [bookDetails, userDetails] = await Promise.all([
-      axios.get(`${BOOK_SERVICE_URL}/api/books/${book_id}`),
-      axios.get(`${USER_SERVICE_URL}/api/users/${actualUserId}`)
+      axios.get(`${BOOK_SERVICE_URL}/api/books/${book_id}`, { headers }),
+      axios.get(`${USER_SERVICE_URL}/api/users/${actualUserId}`, { headers })
     ]);
 
     const loanWithDetails = {
