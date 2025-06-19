@@ -12,7 +12,7 @@ exports.authenticate = async (req, res, next) => {
 
     const token = authHeader.split(' ')[1];
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-      // Validate token with User service
+    
     try {
       const response = await axios.get(`${USER_SERVICE_URL}/api/users/validate`, {
         headers: { Authorization: `Bearer ${token}` }

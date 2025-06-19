@@ -1,7 +1,5 @@
 const jwt = require('jsonwebtoken');
-const axios = require('axios');
-
-const USER_SERVICE_URL = process.env.USER_SERVICE_URL || 'http://localhost:5001';
+const { User } = require('../models');
 
 exports.authenticate = async (req, res, next) => {
   try {
@@ -12,16 +10,14 @@ exports.authenticate = async (req, res, next) => {
 
     const token = authHeader.split(' ')[1];
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-      // Validate token with User service
-    try {
-      const response = await axios.get(`${USER_SERVICE_URL}/api/users/validate`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      req.user = response.data.user;
-      next();
-    } catch (error) {
-      return res.status(401).json({ message: 'Invalid token' });
+    
+    const user = await User.findByPk(decoded.userId);
+    if (!user) {
+      return res.status(401).json({ message: 'User not found' });
     }
+
+    req.user = user;
+    next();
   } catch (error) {
     return res.status(401).json({ message: 'Invalid token' });
   }
