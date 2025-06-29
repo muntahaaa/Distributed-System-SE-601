@@ -10,23 +10,6 @@ services:
     networks:
       - library-network
     depends_on:
-      - gateway
-      - user-service
-      - book-service
-      - loan-service
-  gateway:
-    build:
-      context: ./Gateway
-      dockerfile: Dockerfile
-    ports:
-      - "5000:5000"
-    environment:
-      - USER_SERVICE_URL=http://user-service:5001
-      - BOOK_SERVICE_URL=http://book-service:5002
-      - LOAN_SERVICE_URL=http://loan-service:5003
-    networks:
-      - library-network
-    depends_on:
       - user-service
       - book-service
       - loan-service
